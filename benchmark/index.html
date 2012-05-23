@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+  <head> 
+    <title>Gordon: An open source flash™ runtime written in pure JavaScript</title> 
+    <script type="text/javascript" src="gordon.js"></script>
+  </head> 
+  <body>
+  	<script>
+  	function $(id) {
+  		return document.getElementById(id);
+  	}
+
+    function getResolution() {
+        var res = $('resolution').value.split('x');
+        return {width: res[0], height: res[1]};
+    }
+
+  	function bench(swf, time, render, res, cb) {
+        //console.profile(swf);
+  		var m = new Gordon.Movie(swf, {id: 'stage', width: res.width, height: res.height, renderer: render});
+  		var timer = setTimeout(function() {
+  	  		m.stop();
+            //console.profileEnd(swf);
+  	  		if(cb) {
+  	  			setTimeout(function() {cb(m.times);}, 500);
+  	  		}
+  		}, time);
+  		return m;
+  	}
+
+  	onload = function() {
+  	  	$('start').addEventListener('click', function() {
+            var testcase = $('swf').value;
+  	  	  	bench(testcase, parseInt($('time').value), Gordon[$('renderer').value], getResolution(), function(times) {
+	  	  	  	var fps = (times.length - 2) * 1000 / times.reduce(function(a,b,i){if(i==0) return 0; else return a+b;}, 0),
+                    parse = times[0],
+                    def = times[1];
+	  	  	  	$('result').innerHTML = 'Test Case: '+testcase+'\nParse Time: '+parse+'ms\nFPS: '+fps.toPrecision(5) + '\nDEF: ' + def + 'ms';
+  	  	  	});
+  	  	}, false);
+  	};
+  	</script>
+
+    <table>
+        <tr>
+            <th>Test Case</th>
+            <td>
+                <select id="swf" size="5">
+                    <option value="test.swf" selected="selected">test.swf</option>
+                    <option value="blue.swf">blue.swf</option>
+                    <option value="tiger.swf">tiger.swf</option>
+                    <option value="trip.swf">trip.swf</option>
+                    <option value="car_smash.swf">car_smash.swf</option>
+                    <option value="gradient-tests.swf">gradient-tests.swf</option>
+                    <option value="test3.swf">test3.swf</option>
+                </select>
+            </td>
+            <td rowspan="7" style="border: 1px solid black;">
+                <div id="stage"></div>
+            </td>
+        </tr>
+        <tr>
+            <th>Renderer</th>
+            <td>
+                <select id="renderer" size="5">
+                    <option value="CanvasRenderer" selected="selected">CanvasRenderer</option>
+                    <option value="SvgRenderer">SvgRenderer</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>Resolution</th>
+            <td>
+                <select id="resolution" size="5">
+                    <option value="64x64">64x64</option>
+                    <option value="128x128">128x128</option>
+                    <option value="256x256">256x256</option>
+                    <option value="512x512" selected="selected">512x512</option>
+                    <option value="1024x1024">1024x1024</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>Time</th>
+            <td>
+                <input type="text" id="time" value="20000"/> ms
+            </td>
+        </tr>
+        <tr>
+            <th colspan="2">
+                <input type="button" id="start" value="Start"/>
+            </th>
+        </tr>
+        <tr>
+            <th>Result</th>
+            <td width="200">
+                <pre id="result">
+Test Case:
+Parse Time: 0ms
+FPS: 0
+DEF: 0ms
+                </pre>
+            </td>
+        </tr>
+    </table>
+
+  </body> 
+</html>
